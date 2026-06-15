@@ -6,23 +6,28 @@ A full-stack e-commerce price tracker. Add any product URL, configure the CSS se
 
 ## Features
 
+- **User authentication** — register/login with email and password, JWT sessions, bcrypt password hashing
+- **Per-user data** — each account tracks its own products independently
+- **Admin dashboard** — admin accounts can view all registered users and signup times
 - **Headless browser scraping** via Puppeteer with anti-detection headers and resource blocking for speed
 - **Price history** stored in SQLite with WAL mode for concurrent reads
 - **Interactive dashboard** built with React + Recharts — area charts, price delta badges, in-stock indicators
 - **Scheduled auto-scraping** via node-cron (configurable interval)
 - **Manual refresh** per product with per-endpoint rate limiting
-- **REST API** with Helmet security headers, CORS, and global rate limiting
+- **REST API** with Helmet security headers, CORS, API key + JWT authentication, and global rate limiting
 - Works on any site — supply a CSS selector for the price element
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Scraper | Puppeteer (headless Chromium) |
+| Scraper | Puppeteer (system Chrome/Edge) |
 | Backend | Node.js, Express, node-cron |
-| Database | SQLite (sql.js) |
+| Database | SQLite (sql.js — pure WASM, no native compilation) |
+| Auth | JWT (jsonwebtoken), bcrypt |
 | Frontend | React 18, Vite, Recharts |
 | Styling | CSS Modules |
+| Deployment | Vercel (frontend), Cloudflare Tunnel (backend) |
 
 ## Project Structure
 
@@ -52,6 +57,8 @@ pricehawk/
     └── package.json
 ```
 
+> **Note:** The frontend is deployed on Vercel. The backend runs locally and is exposed via Cloudflare Tunnel — update `VITE_API_URL` in Vercel each time the tunnel URL changes.
+
 ## Getting Started
 
 ### Prerequisites
@@ -71,7 +78,7 @@ cd pricehawk
 ```bash
 cd backend
 npm install
-cp .env.example .env   # edit PORT / SCRAPE_INTERVAL_MINUTES if needed
+cp .env.example .env   # fill in API_KEY, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
 npm run dev
 # API running at http://localhost:3001
 ```
@@ -85,17 +92,27 @@ npm run dev
 # UI running at http://localhost:5173
 ```
 
+### 4. Create an account
+
+Open `http://localhost:5173`, click **Create Account**, and register with your email and password. The admin account is seeded automatically from `ADMIN_EMAIL` / `ADMIN_PASSWORD` in your `.env`.
+
 ## API Reference
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/products` | List all products with latest price |
-| `POST` | `/api/products` | Add a product to track |
-| `DELETE` | `/api/products/:id` | Stop tracking a product |
-| `GET` | `/api/products/:id/history` | Price history (query: `?limit=60`) |
-| `POST` | `/api/products/:id/scrape` | Trigger a manual scrape |
-| `GET` | `/api/stats` | Dashboard summary stats |
-| `GET` | `/health` | Health check |
+All `/api` routes require an `x-api-key` header and a `Bearer` JWT token. Auth routes only need the API key.
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/auth/register` | API key | Create a new account |
+| `POST` | `/auth/login` | API key | Login, returns JWT |
+| `GET` | `/auth/me` | JWT | Current user info |
+| `GET` | `/auth/users` | JWT (admin) | List all users |
+| `GET` | `/api/products` | JWT | List your tracked products |
+| `POST` | `/api/products` | JWT | Add a product to track |
+| `DELETE` | `/api/products/:id` | JWT | Stop tracking a product |
+| `GET` | `/api/products/:id/history` | JWT | Price history (`?limit=60`) |
+| `POST` | `/api/products/:id/scrape` | JWT | Trigger a manual scrape |
+| `GET` | `/api/stats` | JWT | Your dashboard summary stats |
+| `GET` | `/health` | — | Health check |
 
 ### Add product payload
 
@@ -131,5 +148,8 @@ npm run dev
 |----------|---------|-------------|
 | `PORT` | `3001` | Backend server port |
 | `SCRAPE_INTERVAL_MINUTES` | `60` | How often to auto-scrape all products |
-| `FRONTEND_URL` | `http://localhost:5173` | Allowed CORS origin |
-| `API_KEY` | — | Secret key required in `x-api-key` header for all API requests |
+| `FRONTEND_URL` | `http://localhost:5173` | Allowed CORS origin (set to your Vercel URL in production) |
+| `API_KEY` | — | Secret key required in `x-api-key` header |
+| `JWT_SECRET` | — | Secret used to sign JWT tokens (generate with `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`) |
+| `ADMIN_EMAIL` | — | Email for the auto-seeded admin account |
+| `ADMIN_PASSWORD` | — | Password for the auto-seeded admin account |
