@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  // In dev, VITE_API_URL is unset so Vite's proxy handles /api → localhost:3001
+  // In production, set VITE_API_URL=https://your-backend-url in Vercel env vars
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api',
   headers: {
-    // Vite exposes VITE_* vars to the browser via import.meta.env
     'x-api-key': import.meta.env.VITE_API_KEY || '',
   },
 });
