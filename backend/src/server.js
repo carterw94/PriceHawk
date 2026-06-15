@@ -13,8 +13,23 @@ const PORT = process.env.PORT || 3001;
 const SCRAPE_INTERVAL = parseInt(process.env.SCRAPE_INTERVAL_MINUTES || '60', 10);
 
 // ── Security middleware ───────────────────────────────────────────────────────
+app.set('trust proxy', 1); // trust first proxy (Cloudflare tunnel / reverse proxy)
 app.use(helmet());
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+app.use(cors({
+  origin: (origin, callback) => {
+    const production = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
+    if (
+      !origin ||                                          // same-origin / curl
+      origin === 'http://localhost:5173' ||              // local dev
+      origin === production ||                           // production Vercel URL
+      /https:\/\/pricehawk[^.]*\.vercel\.app$/.test(origin) // Vercel preview URLs
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
+}));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false }));
 app.use('/api/products/:id/scrape', rateLimit({ windowMs: 60 * 1000, max: 3 }));
 app.use(express.json());
