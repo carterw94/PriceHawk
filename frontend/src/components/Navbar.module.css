@@ -1,0 +1,20 @@
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 64px;
+  background: #0a0d14;
+  border-bottom: 1px solid #1e293b;
+  position: sticky; top: 0; z-index: 50;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo { font-size: 28px; }
+.name { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+.tagline { font-size: 12px; color: #475569; padding-left: 4px; }
+
+.addBtn {
+  padding: 8px 18px;
+  background: #6366f1; color: #fff; border: none;
+  border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.2s;
+}
+.addBtn:hover { background: #4f46e5; }
