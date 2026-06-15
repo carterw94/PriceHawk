@@ -5,15 +5,33 @@ import StatsBar from './components/StatsBar';
 import ProductCard from './components/ProductCard';
 import AddProductModal from './components/AddProductModal';
 import PriceChartModal from './components/PriceChartModal';
+import LoginPage from './components/LoginPage';
+import AdminPanel from './components/AdminPanel';
 import styles from './App.module.css';
 
 export default function App() {
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ph_user')); } catch { return null; }
+  });
   const [products, setProducts] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [chartProduct, setChartProduct] = useState(null);
   const [scrapingId, setScrapingId] = useState(null);
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  function handleAuth(authUser) {
+    setUser(authUser);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('ph_token');
+    localStorage.removeItem('ph_user');
+    setUser(null);
+    setProducts([]);
+    setStats(null);
+  }
 
   const fetchAll = useCallback(async () => {
     try {
@@ -28,32 +46,17 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!user) { setLoading(false); return; }
     fetchAll();
-    // Auto-refresh every 30s
     const id = setInterval(fetchAll, 30_000);
     return () => clearInterval(id);
-  }, [fetchAll]);
+  }, [user, fetchAll]);
 
-  async function handleDelete(id) {
-    await deleteProduct(id);
-    setProducts(p => p.filter(x => x.id !== id));
-    setStats(s => s ? { ...s, totalProducts: s.totalProducts - 1 } : s);
-  }
-
-  async function handleScrape(id) {
-    setScrapingId(id);
-    try {
-      await manualScrape(id);
-      await fetchAll();
-    } finally {
-      setScrapingId(null);
-    }
-  }
+  if (!user) return <LoginPage onAuth={handleAuth} />;
 
   return (
     <div className={styles.app}>
-      <Navbar onAdd={() => setShowAdd(true)} />
-
+      <Navbar onAdd={() => setShowAdd(true)} user={user} onLogout={handleLogout} onAdmin={() => setShowAdmin(true)} />
       {stats && <StatsBar stats={stats} />}
 
       <main className={styles.main}>
@@ -78,8 +81,8 @@ export default function App() {
                 key={p.id}
                 product={p}
                 scraping={scrapingId === p.id}
-                onDelete={() => handleDelete(p.id)}
-                onScrape={() => handleScrape(p.id)}
+                onDelete={async () => { await deleteProduct(p.id); setProducts(ps => ps.filter(x => x.id !== p.id)); }}
+                onScrape={async () => { setScrapingId(p.id); try { await manualScrape(p.id); await fetchAll(); } finally { setScrapingId(null); } }}
                 onChart={() => setChartProduct(p)}
               />
             ))}
@@ -87,19 +90,9 @@ export default function App() {
         )}
       </main>
 
-      {showAdd && (
-        <AddProductModal
-          onClose={() => setShowAdd(false)}
-          onAdded={() => { setShowAdd(false); fetchAll(); }}
-        />
-      )}
-
-      {chartProduct && (
-        <PriceChartModal
-          product={chartProduct}
-          onClose={() => setChartProduct(null)}
-        />
-      )}
+      {showAdd && <AddProductModal onClose={() => setShowAdd(false)} onAdded={() => { setShowAdd(false); fetchAll(); }} />}
+      {chartProduct && <PriceChartModal product={chartProduct} onClose={() => setChartProduct(null)} />}
+      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
     </div>
   );
 }

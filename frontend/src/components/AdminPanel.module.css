@@ -1,0 +1,64 @@
+.overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+  padding: 16px;
+}
+
+.panel {
+  background: #141822;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%; max-width: 640px;
+  max-height: 80vh;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+.header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.title { font-size: 20px; font-weight: 700; color: #f1f5f9; margin: 0; }
+.subtitle { font-size: 13px; color: #64748b; margin: 4px 0 0; }
+
+.closeBtn {
+  background: none; border: none; color: #64748b;
+  font-size: 18px; cursor: pointer; padding: 4px 8px;
+  border-radius: 6px; transition: background 0.15s;
+}
+.closeBtn:hover { background: #1e293b; color: #e2e8f0; }
+
+.loading { color: #64748b; font-size: 14px; text-align: center; padding: 32px 0; }
+.error { color: #f87171; font-size: 14px; text-align: center; padding: 32px 0; }
+
+.tableWrap { overflow-y: auto; }
+
+.table {
+  width: 100%; border-collapse: collapse; font-size: 14px;
+}
+
+.table th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  color: #475569; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 0 12px 10px; border-bottom: 1px solid #1e293b;
+}
+
+.table td {
+  padding: 12px; border-bottom: 1px solid #0f1117;
+  color: #cbd5e1;
+}
+
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: #1a1f2e; }
+
+.emailCell { color: #e2e8f0; font-weight: 500; }
+.dateCell { color: #475569; font-size: 13px; }
+
+.badge {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 99px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.badgeAdmin { background: #312e81; color: #a5b4fc; }
+.badgeUser  { background: #1e293b; color: #64748b; }

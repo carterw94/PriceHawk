@@ -5,7 +5,6 @@ const path = require('path');
 const DB_PATH = path.join(__dirname, '../../data/pricehawk.db');
 let _db = null;
 
-// ── Public: call once at startup ──────────────────────────────────────────────
 async function initDb() {
   if (_db) return;
 
@@ -20,18 +19,19 @@ async function initDb() {
   }
 
   _createSchema();
-  _persist(); // save initial schema to disk
+  _migrate();
+  _persist();
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Write the in-memory DB to disk. Call after every write operation. */
 function _persist() {
   const data = _db.export();
   fs.writeFileSync(DB_PATH, Buffer.from(data));
 }
 
-/** Run a SELECT and return an array of plain objects. */
+// ── Query helpers ─────────────────────────────────────────────────────────────
+// All queries use parameterised ? placeholders — never string concatenation.
+// This makes SQL injection impossible regardless of what the user sends.
+
 function query(sql, params = []) {
   const result = _db.exec(sql, params);
   if (!result.length) return [];
@@ -41,12 +41,10 @@ function query(sql, params = []) {
   );
 }
 
-/** Run a SELECT and return a single row object (or undefined). */
 function queryOne(sql, params = []) {
   return query(sql, params)[0];
 }
 
-/** Run an INSERT/UPDATE/DELETE. Returns { changes, lastInsertRowid }. */
 function run(sql, params = []) {
   _db.run(sql, params);
   const changes = _db.getRowsModified();
@@ -58,17 +56,28 @@ function run(sql, params = []) {
 // ── Schema ────────────────────────────────────────────────────────────────────
 function _createSchema() {
   _db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      email         TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      password_hash TEXT NOT NULL,
+      role          TEXT NOT NULL DEFAULT 'user',
+      created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  _db.run(`
     CREATE TABLE IF NOT EXISTS products (
       id               INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id          INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       name             TEXT NOT NULL,
-      url              TEXT NOT NULL UNIQUE,
+      url              TEXT NOT NULL,
       selector_price   TEXT NOT NULL,
       selector_title   TEXT,
-      image_url        TEXT,
       created_at       TEXT NOT NULL DEFAULT (datetime('now')),
       last_scraped_at  TEXT
     )
   `);
+
   _db.run(`
     CREATE TABLE IF NOT EXISTS price_history (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,10 +88,26 @@ function _createSchema() {
       scraped_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `);
+
   _db.run(`
     CREATE INDEX IF NOT EXISTS idx_price_history_product
       ON price_history(product_id, scraped_at DESC)
   `);
+
+  _db.run(`
+    CREATE INDEX IF NOT EXISTS idx_products_user
+      ON products(user_id)
+  `);
+}
+
+// ── Migration: add user_id to existing products table if missing ───────────────
+function _migrate() {
+  try {
+    _db.run(`ALTER TABLE products ADD COLUMN user_id INTEGER REFERENCES users(id)`);
+    console.log('[DB] Migration: added user_id column to products');
+  } catch (_) {
+    // Column already exists — no action needed
+  }
 }
 
 module.exports = { initDb, query, queryOne, run };
