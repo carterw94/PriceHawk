@@ -51,9 +51,9 @@ function detectCurrency(raw) {
  * @returns {{ price: number|null, currency: string, title: string|null, inStock: boolean }}
  */
 async function scrapeProduct(url, priceSelector, titleSelector) {
-  const executablePath = findSystemBrowser();
+  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || findSystemBrowser();
   if (executablePath) {
-    console.log(`[Scraper] Using system browser: ${executablePath}`);
+    console.log(`[Scraper] Using browser: ${executablePath}`);
   } else {
     console.log('[Scraper] No system browser found, using Puppeteer bundled browser');
   }
@@ -62,6 +62,8 @@ async function scrapeProduct(url, priceSelector, titleSelector) {
     headless: true,
     ...(executablePath ? { executablePath } : {}),
     args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
       '--disable-gpu',
       '--disable-dev-shm-usage',
       `--window-size=${1200 + Math.floor(Math.random() * 200)},${800 + Math.floor(Math.random() * 100)}`,
