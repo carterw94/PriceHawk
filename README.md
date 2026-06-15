@@ -20,7 +20,7 @@ A full-stack e-commerce price tracker. Add any product URL, configure the CSS se
 |---|---|
 | Scraper | Puppeteer (headless Chromium) |
 | Backend | Node.js, Express, node-cron |
-| Database | SQLite (better-sqlite3, WAL mode) |
+| Database | SQLite (sql.js) |
 | Frontend | React 18, Vite, Recharts |
 | Styling | CSS Modules |
 
@@ -132,7 +132,4 @@ npm run dev
 | `PORT` | `3001` | Backend server port |
 | `SCRAPE_INTERVAL_MINUTES` | `60` | How often to auto-scrape all products |
 | `FRONTEND_URL` | `http://localhost:5173` | Allowed CORS origin |
-
-## License
-
-MIT
+| `API_KEY` | — | Secret key required in `x-api-key` header for all API requests |
