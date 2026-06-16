@@ -59,7 +59,7 @@ async function scrapeProduct(url, priceSelector, titleSelector) {
   }
 
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: true,
     ...(executablePath ? { executablePath } : {}),
     args: [
       '--no-sandbox',
