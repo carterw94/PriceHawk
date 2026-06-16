@@ -15,12 +15,6 @@ const PRESETS = [
     selector_price: '.a-price .a-offscreen',
     selector_title: '#productTitle',
   },
-  {
-    label: 'eBay (generic)',
-    url: '',
-    selector_price: '.x-price-primary span[itemprop="price"]',
-    selector_title: '.x-item-title__mainTitle span',
-  },
 ];
 
 export default function AddProductModal({ onClose, onAdded }) {
