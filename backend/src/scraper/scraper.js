@@ -51,7 +51,7 @@ function detectCurrency(raw) {
  * @returns {{ price: number|null, currency: string, title: string|null, inStock: boolean }}
  */
 async function scrapeProduct(url, priceSelector, titleSelector) {
-  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || findSystemBrowser();
+  const executablePath = findSystemBrowser();
   if (executablePath) {
     console.log(`[Scraper] Using browser: ${executablePath}`);
   } else {
