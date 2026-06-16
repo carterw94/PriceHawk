@@ -2,6 +2,8 @@
 
 A full-stack e-commerce price tracker. Add any product URL, configure the CSS selector for the price element, and PriceHawk scrapes and stores the price on a schedule — visualizing the history on a live dashboard.
 
+Amazon requires anti-bot proxy services (like Bright Data or ScraperAPI) so any links from amazon.com may not be accurate.
+
 ![Dashboard screenshot](docs/screenshot.png)
 
 ## Features
