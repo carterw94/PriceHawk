@@ -71,7 +71,7 @@ pricehawk/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/pricehawk.git
+git clone https://github.com/carterw94/PriceHawk.git
 cd pricehawk
 ```
 
