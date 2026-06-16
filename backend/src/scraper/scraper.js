@@ -59,19 +59,25 @@ async function scrapeProduct(url, priceSelector, titleSelector) {
   }
 
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: 'new',
     ...(executablePath ? { executablePath } : {}),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-gpu',
       '--disable-dev-shm-usage',
+      '--disable-blink-features=AutomationControlled',
       `--window-size=${1200 + Math.floor(Math.random() * 200)},${800 + Math.floor(Math.random() * 100)}`,
     ],
   });
 
   try {
     const page = await browser.newPage();
+
+    // Hide automation signals
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    });
 
     // Spoof a real browser UA
     await page.setUserAgent(
