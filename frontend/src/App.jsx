@@ -20,6 +20,7 @@ export default function App() {
   const [chartProduct, setChartProduct] = useState(null);
   const [scrapingId, setScrapingId] = useState(null);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
 
   function handleAuth(authUser) {
     setUser(authUser);
@@ -38,8 +39,13 @@ export default function App() {
       const [p, s] = await Promise.all([getProducts(), getStats()]);
       setProducts(p);
       setStats(s);
+      setRateLimited(false);
     } catch (e) {
-      console.error(e);
+      if (e.response?.status === 429) {
+        setRateLimited(true); // show banner, keep existing products visible
+      } else {
+        console.error(e);
+      }
     } finally {
       setLoading(false);
     }
@@ -57,6 +63,11 @@ export default function App() {
   return (
     <div className={styles.app}>
       <Navbar onAdd={() => setShowAdd(true)} user={user} onLogout={handleLogout} onAdmin={() => setShowAdmin(true)} />
+      {rateLimited && (
+        <div className={styles.rateBanner}>
+          ⏳ Too many requests — your data is safe, please wait a moment and it will refresh automatically.
+        </div>
+      )}
       {stats && <StatsBar stats={stats} />}
 
       <main className={styles.main}>

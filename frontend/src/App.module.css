@@ -40,3 +40,9 @@
   cursor: pointer; transition: background 0.2s;
 }
 .addBtn:hover { background: #4f46e5; }
+
+.rateBanner {
+  background: #451a03; color: #fed7aa;
+  border-bottom: 1px solid #7c2d12;
+  padding: 10px 24px; font-size: 13px; text-align: center;
+}

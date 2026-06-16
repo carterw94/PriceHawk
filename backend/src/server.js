@@ -32,8 +32,18 @@ app.use(cors({
     }
   },
 }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false }));
-app.use('/api/products/:id/scrape', rateLimit({ windowMs: 60 * 1000, max: 3 }));
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests — please wait a moment and try again.' },
+}));
+app.use('/api/products/:id/scrape', rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: 'Scraping too fast — please wait a minute before trying again.' },
+}));
 app.use(express.json());
 
 // ── API key check (static key for machine-level access) ───────────────────────
